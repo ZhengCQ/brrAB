@@ -75,12 +75,12 @@ class AnnoPopFrq():
         ## filter poplation A and B with hom freq == 1    
         self.vcf_chunk = self.vcf_chunk[~((self.vcf_chunk[f'{popA}.hom_alt.freq'] == 1) | 
                                           (self.vcf_chunk[f'{popB}.hom_alt.freq'] == 1))]
-
+        
         self.vcf_chunk['HET_AB'] = (self.vcf_chunk[f'{popA}.het_alt.freq']*(1 - self.vcf_chunk[f'{popB}.het_alt.freq']))
         self.vcf_chunk['HOM_AB'] = (self.vcf_chunk[f'{popA}.hom_alt.freq']*(1 - self.vcf_chunk[f'{popB}.hom_alt.freq']))
 
         self.vcf_chunk['HET_BA'] = (self.vcf_chunk[f'{popB}.het_alt.freq']*(1 - self.vcf_chunk[f'{popA}.het_alt.freq']))
-        self.vcf_chunk['HOM_BA'] = (self.vcf_chunk[f'{popB}.hom_alt.freq']*(1 - self.vcf_chunk[f'{popA}.hom_alt.freq']))    
+        self.vcf_chunk['HOM_BA'] = (self.vcf_chunk[f'{popB}.hom_alt.freq']*(1 - self.vcf_chunk[f'{popA}.hom_alt.freq']))
 
     
     def main(self):
@@ -91,10 +91,10 @@ class AnnoPopFrq():
         ## get each population hom and het freq
         for pop in popList:
             self.get_pop_freq(pop)
-
-        if len(popList)>2:
-            self.pop_hom_het_freq(popList[0],
-                                  popList[1])
+            
+        #if len(popList)>=2:
+        #    self.pop_hom_het_freq(popList[0],
+        #                          popList[1])
 
 
 
