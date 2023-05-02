@@ -10,7 +10,7 @@ import pandas as pd
 import os
 import time
 import multiprocessing as mp
-from bin.handle_data import AnnoPopFrq
+from bin.handle_data import chunk_handle
 from bin.callrisk import *
 
 
@@ -36,31 +36,6 @@ ARGS.add_argument(
     help='多进程数目, 默认为4')
 
  
-
-def chunk_handle(chunk,sample_info,apd,vcfout,outdir):     
-    chunk = AnnoPopFrq(chunk, sample_info).vcf_chunk
-    if apd: 
-        if vcfout:
-            chunk.iloc[:,0:20].to_csv(f'{outdir}/{outvcf_fi}',sep='\t',index=False,header=None,mode='a') 
-        pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,20:]],axis=1).to_csv(f'{outdir}/gt_freq_info.tsv',
-                         mode='a',
-                         index=False,                                                           
-                         sep='\t',
-                         header=None)
-    else:
-        if vcfout:
-            outvcf_fi = fi.replace('.vcf.gz','.recode.vcf')
-            outf = open(f'{outdir}/{outvcf_fi}','w')
-            for i in header_lines:
-                outf.write(i)
-            outf.close()
-            chunk.iloc[:,0:20].to_csv(f'{outdir}/{outvcf_fi}',sep='\t',index=False,header=None,mode='a')
-        pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,20:]],axis=1).to_csv(
-                     f'{outdir}/gt_freq_info.tsv',
-                     index=False,
-                     sep='\t',
-                    )
-
 def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
     header_lines = os.popen(f'tabix -H {vcf}').readlines()
     
@@ -85,14 +60,14 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
         try:
             chunk = reader.get_chunk(chunkSize)
             if is_apd:
-                #chunk_handle(chunk,sample_info,is_apd,is_vcfout,work_dir)
+                #chunk_handle(chunk,sample_info,is_apd,work_dir)
                 try:
                     pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,work_dir))
                 except:
                     print('error')
                 
             else:
-                #chunk_handle(chunk,sample_info,is_apd,is_vcfout,work_dir)
+                #chunk_handle(chunk,sample_info,is_apd,work_dir)
                 try:
                     pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,work_dir))
                 except:
