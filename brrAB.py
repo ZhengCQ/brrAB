@@ -12,6 +12,7 @@ import time
 import multiprocessing as mp
 from bin.handle_data import chunk_handle
 from bin.callrisk import *
+import gc
 
 
 ARGS = argparse.ArgumentParser(description="物种相对突变负荷AB法")
@@ -73,6 +74,9 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
                 except:
                     print('error')
                 is_apd=True
+            
+            del chunk
+            gc.collect()
         except StopIteration:
             loop = False
             print("Iteration is stopped.")
