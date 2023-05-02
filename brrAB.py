@@ -79,7 +79,7 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
     loop = True
     chunkSize = 10000
     is_apd = False
-    is_vcfout=False
+    #is_vcfout=False
     pool = mp.Pool(n_cores) #启动多进程池
     while loop:
         try:
@@ -87,14 +87,14 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
             if is_apd:
                 #chunk_handle(chunk,sample_info,is_apd,is_vcfout,work_dir)
                 try:
-                    pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,is_vcfout,work_dir))
+                    pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,work_dir))
                 except:
                     print('error')
                 
             else:
                 #chunk_handle(chunk,sample_info,is_apd,is_vcfout,work_dir)
                 try:
-                    pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,is_vcfout,work_dir))
+                    pool.apply_async(chunk_handle,(chunk,sample_info,is_apd,work_dir))
                 except:
                     print('error')
                 is_apd=True
@@ -133,6 +133,7 @@ def read_gtfreq(gt_freq_info,sample_info):
 def call_risk(df_info,workdir,popA,popB,outgrp,freq=None,fix_sites=None):
     ## derived allele
     df_info_di = derived_allele(df_info,outgrp)
+    del(df_info)
     ## add Gscores to missense 
     df_info_di =  add_Gscores(df_info_di)
     ## cal AB,BA
