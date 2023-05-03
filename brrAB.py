@@ -112,7 +112,8 @@ def read_gtfreq(gt_freq_info,sample_info):
 def call_risk(df_info,workdir,popA,popB,outgrp,freq=None,fix_sites=None):
     ## derived allele
     df_info_di = derived_allele(df_info,outgrp)
-    del(df_info)
+    del df_info
+    gc.collect()
     ## add Gscores to missense 
     df_info_di =  add_Gscores(df_info_di)
     ## cal AB,BA

@@ -5,6 +5,7 @@ from collections import Counter
 import warnings
 from typing import Optional,Tuple
 import multiprocessing as mp
+import gc 
 
 warnings.filterwarnings('ignore')
 
@@ -125,4 +126,5 @@ def chunk_handle(chunk,sample_info,apd,outdir):
                      index=False,
                      sep='\t',
                     )
-    del(chunk)
+    del chunk
+    gc.collect()
