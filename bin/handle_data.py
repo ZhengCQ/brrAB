@@ -103,8 +103,6 @@ def chunk_handle(chunk,sample_info,apd,outdir):
     chunk = AnnoPopFrq(chunk, sample_info).vcf_chunk
     gene_idx = list(chunk.columns).index('gene')
     if apd: 
-        #if vcfout:
-        #    chunk.iloc[:,0:20].to_csv(f'{outdir}/{outvcf_fi}',sep='\t',index=False,header=None,mode='a') 
         tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,gene_idx:]],axis=1)
         tmp_chunk.to_csv(f'{outdir}/gt_freq_info.tsv',
                          mode='a',
@@ -113,13 +111,6 @@ def chunk_handle(chunk,sample_info,apd,outdir):
                          header=None)
         
     else:
-        #if vcfout:
-        #    outvcf_fi = fi.replace('.vcf.gz','.recode.vcf')
-        #    outf = open(f'{outdir}/{outvcf_fi}','w')
-        #    for i in header_lines:
-        #        outf.write(i)
-        #    outf.close()
-        #    chunk.iloc[:,0:20].to_csv(f'{outdir}/{outvcf_fi}',sep='\t',index=False,header=None,mode='a')
         tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,gene_idx:]],axis=1)
         tmp_chunk.to_csv(
                      f'{outdir}/gt_freq_info.tsv',

@@ -74,9 +74,6 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
                 except:
                     print('error')
                 is_apd=True
-            
-            del chunk
-            gc.collect()
         except StopIteration:
             loop = False
             print("Iteration is stopped.")
@@ -87,10 +84,9 @@ def vcf2gtfreq(vcf,n_cores,sample_info,work_dir):
     pool.terminate()
 
 
-def read_gtfreq(gt_freq_info,sample_info):
+def read_gtfreq(gt_freq_info,sample_info,outgrp):
     ## cols
     freq_dtypes = {'#CHROM':'category',
-                'POS':'int32',
                 'functional':'category',
                 'func_cate':'category',
                 'gene':'category',
@@ -102,18 +98,31 @@ def read_gtfreq(gt_freq_info,sample_info):
         target_cols.append(f'{i}.hom_alt.freq')
         target_cols.append(f'{i}.het_alt.freq')
 
-    df_info = pd.read_csv(gt_freq_info, sep='\t',usecols= target_cols,low_memory=False)
+    reader = pd.read_csv(gt_freq_info, sep='\t',
+                          usecols= target_cols,
+                          dtype=freq_dtypes,
+                          iterator=True)
+
+    loop = True
+    chunkSize = 10000
+    chunks = []
+    while loop:
+        try:
+            chunks.append(derived_allele(reader.get_chunk(chunkSize), outgrp))
+        except StopIteration:
+            loop = False
+            print("Iteration is stopped.")
+    
+    df_info_di = pd.concat(chunks,ignore_index=True)
+
     ## 多个功能注释，只取前面一个，默认为功能危害最高
-    df_info['functional'] = df_info['functional'].apply(lambda x:x.split('&')[0])
-    return df_info
+    df_info_di['functional'] = df_info_di['functional'].apply(lambda x:x.split('&')[0])
+    return df_info_di
     
 
-
-def call_risk(df_info,workdir,popA,popB,outgrp,freq=None,fix_sites=None):
+def call_risk(df_info_di,workdir,popA,popB,freq=None,fix_sites=None):
     ## derived allele
-    df_info_di = derived_allele(df_info,outgrp)
-    del df_info
-    gc.collect()
+    #df_info_di = derived_allele(df_info,outgrp)
     ## add Gscores to missense 
     df_info_di =  add_Gscores(df_info_di)
     ## cal AB,BA
@@ -139,10 +148,11 @@ def call_risk(df_info,workdir,popA,popB,outgrp,freq=None,fix_sites=None):
         plot_burden_risk(df_risk)
         plt.savefig(f'{workdir}/riskAB/Burden_risk.pdf',bbox_inches='tight')
 
+    df_info_di.to_csv(f'{workdir}/derived_info.tsv',sep='\t',index=False)    
+
 
 def main():
     args = ARGS.parse_args()
-    print (args)
     if not args.infile:
         print('Use --help for command line help')
         return
@@ -157,14 +167,14 @@ def main():
         for i in val['Sample']:
             sample_info.setdefault(idx,[]).append(i)
     if args.infile.endswith(('vcf.gz','vcf')):
-        print(f'Your input {args.infile} is vcf file, starting vcf 2 genotype frequency ......')
+        print(f'Your input {args.infile} is vcf file, starting vcf to genotype frequency ......')
         vcf2gtfreq(args.infile,args.n_cores,sample_info,args.work_dir)
         print(f'Reading genotype frequency ......')
-        df_info = read_gtfreq(f'{args.work_dir}/gt_freq_info.tsv', sample_info)
+        df_info = read_gtfreq(f'{args.work_dir}/gt_freq_info.tsv', sample_info, args.C_population)
     elif args.infile.endswith(('gt_freq_info.tsv.gz','gt_freq_info.tsv')):
         print(f'Your input {args.infile} is genotype freqency file')
         print(f'Reading genotype frequency ......')
-        df_info = read_gtfreq(args.infile,sample_info)
+        df_info = read_gtfreq(args.infile,sample_info,args.C_population)
     else:
         print('Please input vcf or gt_freq_info.tsv file!!')
         print('Use --help for command line help')
@@ -173,7 +183,6 @@ def main():
     call_risk(df_info, args.work_dir, 
               args.A_population, 
               args.B_population, 
-              args.C_population,
               fix_sites = args.fix_sites,
               freq = args.freq)
 
