@@ -93,8 +93,8 @@ def read_gtfreq(gt_freq_info,sample_info,outgrp):
                 }
     target_cols = ['#CHROM','POS', 'gene','functional','func_cate','hgv.p']
     for i in sample_info.keys():
-        freq_dtypes.update({f'{i}.hom_alt.freq':'float16'})
-        freq_dtypes.update({f'{i}.het_alt.freq':'float16'})
+        freq_dtypes.update({f'{i}.hom_alt.freq':'float32'})
+        freq_dtypes.update({f'{i}.het_alt.freq':'float32'})
         target_cols.append(f'{i}.hom_alt.freq')
         target_cols.append(f'{i}.het_alt.freq')
 
@@ -183,7 +183,6 @@ def main():
     call_risk(df_info, args.work_dir, 
               args.A_population, 
               args.B_population, 
-              fix_sites = args.fix_sites,
               freq = args.freq)
 
 if __name__ == '__main__':
