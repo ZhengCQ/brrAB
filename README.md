@@ -30,7 +30,7 @@ Brr can be easily run from anno vcf using snpEff:
 ```
 python ../brrAB.py -f in.anno.vcf.gz -A populationA -B populationB -C outgroupC -w work_dir -G group_infos.tsv
 ```
-(Optional) if you got genotype frequence file (gt_freq_info.tsv), and want to rerun burden risk, use:
+(Optional) if you got genotype frequence file (gt_freq_info.tsv), and want to rerun burden risk,use:
 ```
 python ../brrAB.py -f gt_freq_info.tsv -A populationA -B populationB -C outgroupC -w work_dir -G group_infos.tsv
 ```
