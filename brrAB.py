@@ -33,8 +33,6 @@ ARGS.add_argument(
 ARGS.add_argument(
 	'--fix_sites', dest='fix_sites', type=int, help='fix sites for jackknifes,default is 1/5 of total sites')
 ARGS.add_argument(
-	'--n_boostrap', dest='n_boostrap', type=int, help='number of jackknifes',default=100)
-ARGS.add_argument(
     '--n_cores', dest='n_cores', type=int,default=4,
     help='多进程数目, 默认为4')
 
@@ -105,14 +103,15 @@ def read_gtfreq(gt_freq_info,sample_info,outgrp):
                           dtype=freq_dtypes,
                           iterator=True)
 
-    if re.search(r',', outgrp):
-        outgrp = outgrp.split(',')
     loop = True
     chunkSize = 10000
     chunks = []
     while loop:
         try:
-            chunks.append(derived_allele(reader.get_chunk(chunkSize), outgrp))
+            if outgrp:
+                chunks.append(derived_allele(reader.get_chunk(chunkSize), outgrp))
+            else:
+                chunks.append(reader.get_chunk(chunkSize))
         except StopIteration:
             loop = False
             print("Iteration is stopped.")
@@ -124,7 +123,7 @@ def read_gtfreq(gt_freq_info,sample_info,outgrp):
     return df_info_di
     
 
-def call_risk(df_info_di,workdir,popA,popB,freq=None,fix_sites=None, boostrap_n=100):
+def call_risk(df_info_di,workdir,popA,popB,freq=None,fix_sites=None):
     ## derived allele
     #df_info_di = derived_allele(df_info,outgrp)
     ## add Gscores to missense 
@@ -136,7 +135,7 @@ def call_risk(df_info_di,workdir,popA,popB,freq=None,fix_sites=None, boostrap_n=
         df_info_di = df_info_di[((df_info_di[f'{popA}.hom_alt.freq'] + df_info_di[f'{popA}.het_alt.freq'])<freq) & \
         ((df_info_di[f'{popB}.hom_alt.freq'] + df_info_di[f'{popB}.het_alt.freq'])<freq)]
 
-    funcfi1 = CallfunctionalFi(df_info_di,fix_sites=fix_sites,boostrap_n=boostrap_n)
+    funcfi1 = CallfunctionalFi(df_info_di,fix_sites=fix_sites,boostrap_n=100)
     df_risk = CallBurdenRisk(funcfi1.AB,
                             funcfi1.BA,
                             norm_item='intergenic_region').df_risk
@@ -187,9 +186,7 @@ def main():
     call_risk(df_info, args.work_dir, 
               args.A_population, 
               args.B_population, 
-              freq = args.freq,
-              boostrap_n = args.n_boostrap
-              )
+              freq = args.freq)
 
 if __name__ == '__main__':
 	start = time.time()

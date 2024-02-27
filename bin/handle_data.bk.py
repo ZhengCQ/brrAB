@@ -21,7 +21,7 @@ class AnnoPopFrq():
     
     def fetch_ann(self, info):
         try:
-            for ann in info.split('ANN=')[1].split(','):
+            for ann in info.split('ANN=')[1].split(',')[::-1]:
                 infos = ann.split('|')
                 if len(infos)<6:
                     continue

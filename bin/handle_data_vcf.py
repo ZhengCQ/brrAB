@@ -21,7 +21,7 @@ class AnnoPopFrq():
     
     def fetch_ann(self, info):
         try:
-            for ann in info.split('ANN=')[1].split(','):
+            for ann in info.split('ANN=')[1].split(',')[::-1]:
                 infos = ann.split('|')
                 if len(infos)<6:
                     continue
@@ -36,11 +36,11 @@ class AnnoPopFrq():
         self.vcf_chunk = self.vcf_chunk[~(self.vcf_chunk['ALT'].str.contains(','))]
 
         ## get annotation info
-        self.vcf_chunk = self.vcf_chunk.assign(**{'gene':'.', 'transcript':'.', 'functional':'.',
-                                                  'hgv.c':'.','hgv.p':'.'})
+        #self.vcf_chunk = self.vcf_chunk.assign(**{'gene':'.', 'transcript':'.', 'functional':'.',
+        #                                          'hgv.c':'.','hgv.p':'.'})
 
-        self.vcf_chunk.loc[:,['gene','transcript','functional','func_cate','hgv.c','hgv.p']] = \
-        [i for i in map(self.fetch_ann, self.vcf_chunk['INFO'].values)]
+        #self.vcf_chunk.loc[:,['gene','transcript','functional','func_cate','hgv.c','hgv.p']] = \
+        #[i for i in map(self.fetch_ann, self.vcf_chunk['INFO'].values)]
 
     
     def call_pop_freq(self,gt_info):
@@ -101,9 +101,11 @@ class AnnoPopFrq():
 
 def chunk_handle(chunk,sample_info,apd,outdir):     
     chunk = AnnoPopFrq(chunk, sample_info).vcf_chunk
-    gene_idx = list(chunk.columns).index('gene')
+    popList = list(sample_info.keys())
+
+    start_idx = list(chunk.columns).index(f'{popList[0]}.hom_alt.freq')
     if apd: 
-        tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,gene_idx:]],axis=1)
+        tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,start_idx:]],axis=1)
         tmp_chunk.to_csv(f'{outdir}/gt_freq_info.tsv',
                          mode='a',
                          index=False,                                                           
@@ -111,11 +113,9 @@ def chunk_handle(chunk,sample_info,apd,outdir):
                          header=None)
         
     else:
-        tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,gene_idx:]],axis=1)
+        tmp_chunk = pd.concat([chunk[['#CHROM','POS','REF','ALT']],chunk.iloc[:,start_idx:]],axis=1)
         tmp_chunk.to_csv(
                      f'{outdir}/gt_freq_info.tsv',
                      index=False,
                      sep='\t',
                     )
-    del chunk
-    gc.collect()
