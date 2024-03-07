@@ -58,6 +58,7 @@ class AnnoPopFrq():
     
     def get_pop_freq(self,pop):
         samples = self.sample_grp[pop]
+        samples = [str(i) for i in samples]
         samples_name = ','.join(samples)
         self.vcf_chunk = self.vcf_chunk.assign(**{f'{pop}.hom_alt.freq':0, 
                                         f'{pop}.het_alt.freq':0, 
